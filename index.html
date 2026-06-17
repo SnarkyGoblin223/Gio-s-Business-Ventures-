@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gio — Business Ventures</title>
+  <meta name="description" content="The ventures, ideas, and businesses of Gio. A personal portfolio of everything I build." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Scroll progress bar -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- Side dot navigation -->
+  <nav class="dot-nav" id="dotNav" aria-label="Section navigation"></nav>
+
+  <!-- ============ HERO ============ -->
+  <section class="panel hero" id="hero" data-label="Home" data-theme="hero">
+    <div class="hero-bg">
+      <span class="orb orb-1"></span>
+      <span class="orb orb-2"></span>
+      <span class="orb orb-3"></span>
+    </div>
+    <div class="hero-content reveal">
+      <p class="eyebrow">PERSONAL PORTFOLIO</p>
+      <h1 class="hero-title">
+        <span class="line">Hi, I'm <span class="grad">Gio</span>.</span>
+        <span class="line">I build <span class="rotator" id="rotator">businesses</span>.</span>
+      </h1>
+      <p class="hero-sub">A living showcase of every venture I've started, scaled, and dreamed up — each one its own world. Scroll to explore.</p>
+      <a href="#about" class="btn-scroll" data-scrollto>
+        <span>Explore my world</span>
+        <span class="arrow">↓</span>
+      </a>
+    </div>
+    <div class="scroll-hint"><span></span></div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section class="panel about" id="about" data-label="About" data-theme="about">
+    <div class="about-grid">
+      <div class="about-photo reveal">
+        <div class="photo-frame">
+          <!-- Replace the src below with a real photo of you -->
+          <div class="photo-placeholder">GIO</div>
+        </div>
+        <div class="photo-badge">EST. 2026</div>
+      </div>
+      <div class="about-text">
+        <p class="eyebrow reveal">ABOUT ME</p>
+        <h2 class="reveal">The person behind <br/>the ventures.</h2>
+        <p class="lead reveal">
+          [Write your story here.] I'm an entrepreneur driven by curiosity and the
+          thrill of building something from nothing. From late-night ideas to
+          full-fledged businesses, this site is the home of everything I create.
+        </p>
+        <p class="reveal">
+          [Add more about your background, what you care about, your philosophy on
+          business, and what you're working toward.] Every venture below represents
+          a different chapter — a different problem I wanted to solve.
+        </p>
+        <div class="about-stats reveal">
+          <div class="stat"><span class="num" data-count="3">0</span><span class="lbl">Ventures</span></div>
+          <div class="stat"><span class="num" data-count="2026">0</span><span class="lbl">Since</span></div>
+          <div class="stat"><span class="num" data-count="100">0</span><span class="lbl">% Passion</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUSINESS 1 — bold / editorial ============ -->
+  <section class="panel biz biz-1" id="biz-1" data-label="Venture 01" data-theme="biz1">
+    <div class="biz-index">01</div>
+    <div class="biz1-grid">
+      <div class="biz1-left reveal">
+        <p class="eyebrow">VENTURE NO. 01</p>
+        <h2 class="biz-name">Business <br/>Name One</h2>
+        <p class="biz-tag">A short, punchy tagline that says what this business does.</p>
+        <p class="biz-desc">
+          [Describe this business.] What it is, who it's for, and why it matters.
+          This section uses a bold editorial layout — big type, high contrast.
+        </p>
+        <div class="biz-meta">
+          <span class="chip">Industry</span>
+          <span class="chip">Founded 2026</span>
+          <span class="chip">Active</span>
+        </div>
+        <a href="#" class="biz-link">Visit site →</a>
+      </div>
+      <div class="biz1-right reveal">
+        <div class="biz1-card">
+          <span class="card-tag">FEATURED</span>
+          <div class="card-visual">01</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BUSINESS 2 — dark / neon tech ============ -->
+  <section class="panel biz biz-2" id="biz-2" data-label="Venture 02" data-theme="biz2">
+    <div class="grid-overlay"></div>
+    <div class="biz2-content reveal">
+      <p class="eyebrow neon">VENTURE NO. 02</p>
+      <h2 class="biz-name glow">Business Name Two</h2>
+      <p class="biz-tag">A different vibe — sleek, dark, and futuristic for a tech-forward venture.</p>
+      <p class="biz-desc">
+        [Describe this business.] Notice how it feels completely different from
+        Venture 01. Each business gets its own personality and color world.
+      </p>
+      <div class="biz2-features">
+        <div class="feat"><span class="feat-dot"></span> Feature or highlight one</div>
+        <div class="feat"><span class="feat-dot"></span> Feature or highlight two</div>
+        <div class="feat"><span class="feat-dot"></span> Feature or highlight three</div>
+      </div>
+      <a href="#" class="biz-link neon-link">Launch →</a>
+    </div>
+  </section>
+
+  <!-- ============ BUSINESS 3 — warm / luxe ============ -->
+  <section class="panel biz biz-3" id="biz-3" data-label="Venture 03" data-theme="biz3">
+    <div class="biz3-index">03</div>
+    <div class="biz3-content reveal">
+      <p class="eyebrow gold">VENTURE NO. 03</p>
+      <h2 class="biz-name serif">Business Name Three</h2>
+      <p class="biz-tag">Warm, premium, and refined — for a venture with an elegant feel.</p>
+      <p class="biz-desc">
+        [Describe this business.] A third distinct world. We can keep adding as many
+        of these as you have businesses, each styled to match its brand.
+      </p>
+      <a href="#" class="biz-link gold-link">Discover →</a>
+    </div>
+    <div class="biz3-deco"></div>
+  </section>
+
+  <!-- ============ FOOTER / CONTACT ============ -->
+  <section class="panel footer" id="contact" data-label="Contact" data-theme="footer">
+    <div class="footer-content reveal">
+      <h2>Let's build something.</h2>
+      <a href="mailto:giopardo@umich.edu" class="footer-mail">giopardo@umich.edu</a>
+      <div class="footer-socials">
+        <a href="#" aria-label="LinkedIn">LinkedIn</a>
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="Twitter">X / Twitter</a>
+      </div>
+      <p class="footer-note">© <span id="year"></span> Gio. Built with ambition.</p>
+    </div>
+  </section>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
