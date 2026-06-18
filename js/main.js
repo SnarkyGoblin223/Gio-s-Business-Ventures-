@@ -1,120 +1,201 @@
 /* ============================================================
-   Gio — Business Ventures :: interactions
+   Gio — Ventures :: intro -> Tetris crumble -> tarot grid
    ============================================================ */
 (function () {
   'use strict';
 
-  /* ---- Footer year ---- */
-  var yearEl = document.getElementById('year');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
+  var intro      = document.getElementById('intro');
+  var ventures   = document.getElementById('ventures');
+  var crumble    = document.getElementById('crumble');
+  var exploreBtn = document.getElementById('exploreBtn');
+  var backBtn    = document.getElementById('backBtn');
+  var reduce     = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* ---- Reveal on scroll (staggered) ---- */
-  var revealEls = document.querySelectorAll('.reveal');
-  if ('IntersectionObserver' in window) {
-    var revObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry, i) {
-        if (entry.isIntersecting) {
-          // stagger siblings within the same panel
-          var siblings = entry.target.parentElement.querySelectorAll('.reveal');
-          var idx = Array.prototype.indexOf.call(siblings, entry.target);
-          entry.target.style.setProperty('--d', (Math.max(idx, 0) * 0.08) + 's');
-          entry.target.classList.add('in');
-          revObs.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.15 });
-    revealEls.forEach(function (el) { revObs.observe(el); });
-  } else {
-    revealEls.forEach(function (el) { el.classList.add('in'); });
+  /* ---- Tetromino definitions (cells as [row, col]) ---- */
+  var COLORS = {
+    I: '#22d3ee', O: '#fde047', T: '#c084fc',
+    S: '#4ade80', Z: '#fb7185', J: '#60a5fa', L: '#fb923c'
+  };
+  var SHAPES = {
+    I: [[0,0],[0,1],[0,2],[0,3]],
+    O: [[0,0],[0,1],[1,0],[1,1]],
+    T: [[0,0],[0,1],[0,2],[1,1]],
+    S: [[0,1],[0,2],[1,0],[1,1]],
+    Z: [[0,0],[0,1],[1,1],[1,2]],
+    J: [[0,0],[1,0],[1,1],[1,2]],
+    L: [[0,2],[1,0],[1,1],[1,2]]
+  };
+
+  function normalize(cells) {
+    var minR = Infinity, minC = Infinity;
+    cells.forEach(function (c) { if (c[0] < minR) minR = c[0]; if (c[1] < minC) minC = c[1]; });
+    return cells.map(function (c) { return [c[0] - minR, c[1] - minC]; });
   }
-
-  /* ---- Scroll progress bar ---- */
-  var progress = document.getElementById('scrollProgress');
-  function updateProgress() {
-    var h = document.documentElement;
-    var scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight);
-    if (progress) progress.style.width = (scrolled * 100) + '%';
+  function rotate(cells) { return normalize(cells.map(function (c) { return [c[1], -c[0]]; })); }
+  function keyOf(cells) {
+    return cells.slice().sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; })
+      .map(function (c) { return c.join(','); }).join(';');
   }
-  window.addEventListener('scroll', updateProgress, { passive: true });
-  updateProgress();
-
-  /* ---- Build dot navigation from panels ---- */
-  var panels = Array.prototype.slice.call(document.querySelectorAll('.panel'));
-  var dotNav = document.getElementById('dotNav');
-  var dots = [];
-  panels.forEach(function (panel) {
-    var btn = document.createElement('button');
-    btn.setAttribute('aria-label', panel.dataset.label || panel.id);
-    var tip = document.createElement('span');
-    tip.className = 'tip';
-    tip.textContent = panel.dataset.label || panel.id;
-    btn.appendChild(tip);
-    btn.addEventListener('click', function () {
-      panel.scrollIntoView({ behavior: 'smooth' });
-    });
-    dotNav.appendChild(btn);
-    dots.push(btn);
+  /* Pre-compute every shape in every unique rotation */
+  var VARIANTS = [];
+  Object.keys(SHAPES).forEach(function (k) {
+    var cur = normalize(SHAPES[k]);
+    var seen = {};
+    for (var i = 0; i < 4; i++) {
+      var key = keyOf(cur);
+      if (!seen[key]) { seen[key] = true; VARIANTS.push({ color: COLORS[k], cells: cur }); }
+      cur = rotate(cur);
+    }
   });
 
-  /* ---- Active dot + theme tracking ---- */
-  if ('IntersectionObserver' in window) {
-    var activeObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          var i = panels.indexOf(entry.target);
-          dots.forEach(function (d, di) { d.classList.toggle('active', di === i); });
-        }
-      });
-    }, { threshold: 0.55 });
-    panels.forEach(function (p) { activeObs.observe(p); });
+  function topLeft(cells) {
+    var best = cells[0];
+    for (var i = 1; i < cells.length; i++) {
+      var c = cells[i];
+      if (c[0] < best[0] || (c[0] === best[0] && c[1] < best[1])) best = c;
+    }
+    return best;
+  }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
   }
 
-  /* ---- Smooth-scroll for [data-scrollto] / hash links ---- */
-  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
-    a.addEventListener('click', function (e) {
-      var id = a.getAttribute('href');
-      if (id.length > 1) {
-        var target = document.querySelector(id);
-        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  /* ---- Build a packed Tetris wall covering the viewport ---- */
+  function buildWall() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var cols = Math.max(7, Math.min(22, Math.round(vw / 72)));
+    var CELL = Math.ceil(vw / cols);
+    var rows = Math.ceil(vh / CELL) + 1;
+
+    var grid = [];
+    for (var r = 0; r < rows; r++) { grid.push(new Array(cols).fill(false)); }
+
+    var pieces = [];
+    var frag = document.createDocumentFragment();
+
+    function place(cells, color) {
+      var minR = Infinity, minC = Infinity, maxR = -1, maxC = -1;
+      cells.forEach(function (c) {
+        grid[c[0]][c[1]] = true;
+        if (c[0] < minR) minR = c[0]; if (c[1] < minC) minC = c[1];
+        if (c[0] > maxR) maxR = c[0]; if (c[1] > maxC) maxC = c[1];
+      });
+      var piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.style.left = (minC * CELL) + 'px';
+      piece.style.top = (minR * CELL) + 'px';
+      piece.style.width = ((maxC - minC + 1) * CELL) + 'px';
+      piece.style.height = ((maxR - minR + 1) * CELL) + 'px';
+      piece.style.opacity = '0';
+      piece.style.transform = 'translateY(-26px) scale(0.5)';
+      cells.forEach(function (c) {
+        var b = document.createElement('div');
+        b.className = 'block';
+        b.style.left = ((c[1] - minC) * CELL) + 'px';
+        b.style.top = ((c[0] - minR) * CELL) + 'px';
+        b.style.width = CELL + 'px';
+        b.style.height = CELL + 'px';
+        b.style.background = color;
+        piece.appendChild(b);
+      });
+      frag.appendChild(piece);
+      pieces.push({ el: piece, minR: minR, maxR: maxR });
+    }
+
+    for (var rr = 0; rr < rows; rr++) {
+      for (var cc = 0; cc < cols; cc++) {
+        if (grid[rr][cc]) continue;
+        var placed = false;
+        var options = shuffle(VARIANTS);
+        for (var v = 0; v < options.length; v++) {
+          var variant = options[v];
+          var tl = topLeft(variant.cells);
+          var dR = rr - tl[0], dC = cc - tl[1];
+          var abs = [], ok = true;
+          for (var i = 0; i < variant.cells.length; i++) {
+            var ar = variant.cells[i][0] + dR, ac = variant.cells[i][1] + dC;
+            if (ar < 0 || ar >= rows || ac < 0 || ac >= cols || grid[ar][ac]) { ok = false; break; }
+            abs.push([ar, ac]);
+          }
+          if (ok) { place(abs, variant.color); placed = true; break; }
+        }
+        if (!placed) {
+          var pal = Object.keys(COLORS);
+          place([[rr, cc]], COLORS[pal[Math.floor(Math.random() * pal.length)]]);
+        }
       }
+    }
+
+    crumble.appendChild(frag);
+    var maxRowGlobal = rows - 1;
+    return { pieces: pieces, maxRow: maxRowGlobal };
+  }
+
+  /* ---- The full Explore sequence ---- */
+  function explore() {
+    exploreBtn.disabled = true;
+
+    if (reduce) { intro.classList.add('gone'); revealVentures(); return; }
+
+    var data = buildWall();
+    crumble.classList.add('active');
+    intro.classList.add('gone');
+
+    /* Phase 1 — blocks snap into place (the screen "becomes" Tetris) */
+    requestAnimationFrame(function () {
+      data.pieces.forEach(function (p) {
+        p.el.style.transition = 'transform 0.4s cubic-bezier(0.2,0.8,0.2,1), opacity 0.4s ease';
+        p.el.style.transitionDelay = (p.minR * 0.016 + Math.random() * 0.05) + 's';
+        p.el.style.opacity = '1';
+        p.el.style.transform = 'none';
+      });
     });
+
+    /* Phase 2 — crumble away + reveal ventures behind */
+    setTimeout(function () {
+      revealVentures();
+      data.pieces.forEach(function (p) {
+        var delay = (data.maxRow - p.maxR) * 0.04 + Math.random() * 0.18;
+        var rot = (Math.random() * 440 - 220).toFixed(0);
+        var dx = (Math.random() * 130 - 65).toFixed(0);
+        p.el.style.transition = 'transform 0.95s cubic-bezier(0.5,0,0.85,0.25), opacity 0.95s ease-in';
+        p.el.style.transitionDelay = delay + 's';
+        p.el.style.transform = 'translate(' + dx + 'px, 115vh) rotate(' + rot + 'deg)';
+        p.el.style.opacity = '0';
+      });
+    }, 620);
+
+    /* Phase 3 — clean up the overlay */
+    setTimeout(function () {
+      crumble.classList.remove('active');
+      crumble.innerHTML = '';
+    }, 2200);
+  }
+
+  function revealVentures() {
+    ventures.setAttribute('aria-hidden', 'false');
+    ventures.classList.add('show');
+  }
+
+  function goBack() {
+    ventures.classList.remove('show');
+    ventures.setAttribute('aria-hidden', 'true');
+    intro.classList.remove('gone');
+    exploreBtn.disabled = false;
+    document.querySelectorAll('.tcard.flipped').forEach(function (c) { c.classList.remove('flipped'); });
+  }
+
+  /* ---- Tarot card flip ---- */
+  document.querySelectorAll('.tcard').forEach(function (card) {
+    if (card.classList.contains('locked')) return;
+    card.addEventListener('click', function () { card.classList.toggle('flipped'); });
   });
 
-  /* ---- Hero word rotator ---- */
-  var rotator = document.getElementById('rotator');
-  if (rotator) {
-    var words = ['businesses', 'brands', 'ventures', 'ideas', 'the future'];
-    var ri = 0;
-    setInterval(function () {
-      ri = (ri + 1) % words.length;
-      rotator.style.opacity = '0';
-      setTimeout(function () {
-        rotator.textContent = words[ri];
-        rotator.style.opacity = '1';
-      }, 300);
-    }, 2400);
-    rotator.style.transition = 'opacity 0.3s ease';
-  }
-
-  /* ---- Count-up stats ---- */
-  var counters = document.querySelectorAll('[data-count]');
-  if ('IntersectionObserver' in window && counters.length) {
-    var countObs = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var el = entry.target;
-        var target = parseInt(el.dataset.count, 10);
-        var dur = 1400, start = performance.now();
-        function tick(now) {
-          var p = Math.min((now - start) / dur, 1);
-          var eased = 1 - Math.pow(1 - p, 3);
-          el.textContent = Math.round(eased * target);
-          if (p < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-        countObs.unobserve(el);
-      });
-    }, { threshold: 0.6 });
-    counters.forEach(function (c) { countObs.observe(c); });
-  }
+  exploreBtn.addEventListener('click', explore);
+  backBtn.addEventListener('click', goBack);
 })();
