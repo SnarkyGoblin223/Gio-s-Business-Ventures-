@@ -194,11 +194,12 @@
     }
   }
 
-  /* a ribbon that starts at x=sx up top and converges to centre-bottom */
-  function ribbonPath(sx) {
-    var ex = 120;
-    return 'M ' + sx + ' -12 ' +
-      'C ' + sx + ' 95, ' + (ex + (sx - ex) * 0.30) + ' 215, ' + ex + ' 372';
+  /* a ribbon that emerges near the sun (centre-top), bows out to mx,
+     then funnels back into centre-bottom (the Explore button) */
+  function ribbonPath(sx, mx) {
+    return 'M ' + sx + ' -14 ' +
+      'C ' + sx + ' 92, ' + mx + ' 150, ' + mx + ' 216 ' +
+      'C ' + mx + ' 300, 120 330, 120 414';
   }
 
   function initBeams() {
@@ -206,28 +207,41 @@
     if (!svg) return;
 
     var defs = svgEl('defs');
-    var grad = svgEl('linearGradient', { id: 'beamGrad', x1: '0', y1: '0', x2: '0', y2: '1' });
-    grad.appendChild(svgEl('stop', { offset: '0%',  'stop-color': '#ffe27a' }));
-    grad.appendChild(svgEl('stop', { offset: '45%', 'stop-color': '#ff8a2c' }));
-    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#e2406d' }));
-    defs.appendChild(grad);
+    var grads = [
+      ['#ffd24a', '#ff7a1f', '#e8341f'],
+      ['#ffb347', '#ff5a2c', '#c81d3a'],
+      ['#ff8a2c', '#ff3d2e', '#b51d54']
+    ];
+    grads.forEach(function (stops, gi) {
+      var g = svgEl('linearGradient', { id: 'beamGrad' + gi, x1: '0', y1: '0', x2: '0', y2: '1' });
+      g.appendChild(svgEl('stop', { offset: '0%',   'stop-color': stops[0] }));
+      g.appendChild(svgEl('stop', { offset: '50%',  'stop-color': stops[1] }));
+      g.appendChild(svgEl('stop', { offset: '100%', 'stop-color': stops[2] }));
+      defs.appendChild(g);
+    });
     svg.appendChild(defs);
 
+    /* clustered starts (out of the sun) -> fanned middles -> centre bottom */
     var data = [
-      { x: 28, w: 14 }, { x: 60, w: 22 }, { x: 96, w: 16 },
-      { x: 132, w: 26 }, { x: 168, w: 18 }, { x: 200, w: 22 }, { x: 224, w: 13 }
+      { sx: 114, mx: 30,  w: 26, g: 2 },
+      { sx: 118, mx: 56,  w: 34, g: 0 },
+      { sx: 122, mx: 90,  w: 40, g: 1 },
+      { sx: 116, mx: 120, w: 30, g: 2 },
+      { sx: 124, mx: 150, w: 40, g: 0 },
+      { sx: 120, mx: 186, w: 34, g: 1 },
+      { sx: 126, mx: 212, w: 26, g: 2 }
     ];
     data.forEach(function (d, i) {
-      var dPath = ribbonPath(d.x);
+      var dPath = ribbonPath(d.sx, d.mx);
       var group = svgEl('g', { 'class': 'ribbon' });
       group.style.animationDelay = (i * 0.5) + 's';
       group.appendChild(svgEl('path', {
         'class': 'ribbon-base', d: dPath,
-        stroke: 'url(#beamGrad)', 'stroke-width': d.w, opacity: '0.92'
+        stroke: 'url(#beamGrad' + d.g + ')', 'stroke-width': d.w, opacity: '0.95'
       }));
       var glow = svgEl('path', {
         'class': 'ribbon-glow', d: dPath,
-        'stroke-width': Math.max(3, d.w * 0.3)
+        'stroke-width': Math.max(3, d.w * 0.22)
       });
       glow.style.animationDelay = (i * 0.4) + 's';
       group.appendChild(glow);
