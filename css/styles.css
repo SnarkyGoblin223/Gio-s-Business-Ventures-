@@ -34,63 +34,127 @@ html, body {
    ============================================================ */
 .intro {
   z-index: 1;
-  background: radial-gradient(130% 130% at 50% 0%, #15122e 0%, #07070d 62%);
+  flex-direction: column;
+  justify-content: flex-start;
   text-align: center;
+  background:
+    radial-gradient(120% 90% at 50% 8%, #1aa0a6 0%, #0e7280 34%, #0a505e 60%, #06323d 100%);
   transition: opacity 0.5s ease, filter 0.5s ease;
 }
 .intro.gone { opacity: 0; pointer-events: none; }
 
-.intro-bg { position: absolute; inset: 0; overflow: hidden; }
-.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.5; animation: float 16s ease-in-out infinite; }
-.orb-1 { width: 480px; height: 480px; background: #6c5ce7; top: -10%; left: -8%; }
-.orb-2 { width: 400px; height: 400px; background: #18a0ff; bottom: -12%; right: -6%; animation-delay: -5s; }
-.orb-3 { width: 320px; height: 320px; background: #ff6ba6; top: 38%; left: 56%; animation-delay: -9s; }
-@keyframes float {
-  0%,100% { transform: translate(0,0) scale(1); }
-  33% { transform: translate(46px,-34px) scale(1.08); }
-  66% { transform: translate(-34px,28px) scale(0.95); }
+/* faint background rays + bokeh behind the sun (Tarot-of-the-Sun feel) */
+.intro-sky { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.intro-sky::before {
+  content: ""; position: absolute; left: 50%; top: 12%;
+  width: 180vmax; height: 180vmax; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg,
+    rgba(255,255,255,0.045) 0deg 1.4deg, transparent 1.4deg 5deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 0%, transparent 72%);
+  mask-image: radial-gradient(closest-side, #000 0%, transparent 72%);
+  animation: skySpin 140s linear infinite;
+}
+.intro-sky::after {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    radial-gradient(circle 40px at 16% 26%, rgba(255,220,150,0.12), transparent 60%),
+    radial-gradient(circle 30px at 82% 20%, rgba(120,230,230,0.14), transparent 60%),
+    radial-gradient(circle 26px at 74% 62%, rgba(255,180,120,0.10), transparent 60%),
+    radial-gradient(circle 34px at 24% 70%, rgba(120,220,220,0.10), transparent 60%);
+}
+@keyframes skySpin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+/* the art column */
+.intro-art {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column; align-items: center;
+  width: 100%; height: 100%;
+  padding: clamp(1.2rem, 4vh, 3rem) 1rem 0;
 }
 
-.intro-inner { position: relative; z-index: 2; padding: 1.5rem; }
-.intro-hi {
-  font-family: 'Syne', sans-serif;
-  font-size: clamp(2.8rem, 9vw, 6.5rem);
-  font-weight: 800; line-height: 1; letter-spacing: -0.02em;
-  margin-bottom: 0.6rem;
+/* SUN */
+.sun-wrap { position: relative; z-index: 2; margin-top: clamp(0.5rem, 3vh, 2.5rem); }
+.sun {
+  width: clamp(230px, 40vmin, 440px); height: auto; display: block;
+  overflow: visible;
+  filter: drop-shadow(0 0 40px rgba(255,170,70,0.45));
 }
-.grad {
-  background: linear-gradient(100deg, #8b7cff, #00d2ff, #ff9ad1);
-  -webkit-background-clip: text; background-clip: text; color: transparent;
+.sun-rays { transform-box: fill-box; transform-origin: center; animation: sunSpin 90s linear infinite; }
+@keyframes sunSpin { to { transform: rotate(360deg); } }
+.flame {
+  fill: url(#rayGrad);
+  transform-box: fill-box; transform-origin: 50% 100%;
+  animation: flameBob 4.5s ease-in-out infinite;
 }
-.intro-mid {
-  font-size: clamp(1.2rem, 3.4vw, 2.1rem);
-  font-weight: 500; color: rgba(255,255,255,0.92); margin-bottom: 0.35rem;
+@keyframes flameBob {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-3px) scaleY(1.09); }
 }
-.intro-sub {
-  font-size: clamp(0.95rem, 2vw, 1.25rem);
-  color: rgba(255,255,255,0.55); margin-bottom: 2.6rem; font-weight: 400;
+.sun-line { stroke: rgba(244,120,30,0.5); stroke-width: 1; }
+.sun-disc-ring { fill: none; stroke: rgba(255,90,30,0.7); stroke-width: 2.5; }
+.sun-core { fill: url(#discGrad); }
+
+/* NAME + tagline */
+.intro-name {
+  position: relative; z-index: 2;
+  margin-top: clamp(0.6rem, 2.4vh, 1.8rem);
+  font-family: 'Cinzel', serif; font-weight: 700;
+  font-size: clamp(3rem, 11vw, 7rem); line-height: 1;
+  color: #ffe9b8;
+  text-shadow: 0 0 22px rgba(255,170,70,0.6), 0 2px 0 rgba(120,40,10,0.4);
+  letter-spacing: 0.04em;
 }
+.intro-tag {
+  margin-top: 0.5rem;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 500;
+  font-size: clamp(0.95rem, 2.2vw, 1.3rem);
+  color: rgba(255,236,200,0.85); letter-spacing: 0.05em;
+}
+
+/* SUNBEAM RIBBONS flowing down to Explore */
+.beams {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  bottom: 0; width: clamp(220px, 34vmin, 360px); height: 48%;
+  z-index: 1; pointer-events: none; overflow: visible;
+}
+.ribbon {
+  transform-box: fill-box; transform-origin: 50% 0%;
+  animation: ribbonSway 7s ease-in-out infinite;
+}
+.ribbon-base { fill: none; stroke-linecap: round; }
+@keyframes ribbonSway {
+  0%, 100% { transform: translateX(0) skewX(0deg); }
+  50% { transform: translateX(5px) skewX(-2deg); }
+}
+.ribbon-glow {
+  fill: none; stroke: rgba(255,245,210,0.85); stroke-linecap: round;
+  stroke-dasharray: 26 220; animation: ribbonFlow 3.2s linear infinite;
+}
+@keyframes ribbonFlow { to { stroke-dashoffset: -246; } }
+
+/* EXPLORE button (sunset glow) */
 .explore-btn {
-  position: relative;
-  display: inline-flex; align-items: center; gap: 0.6rem;
-  padding: 1rem 2.4rem; border-radius: 50px; cursor: pointer;
-  font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 600;
-  letter-spacing: 0.04em; color: #07070d;
-  background: linear-gradient(100deg, #ffffff, #cfe6ff);
+  position: relative; z-index: 3;
+  margin-top: auto; margin-bottom: clamp(1.4rem, 5vh, 3.4rem);
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  padding: 0.95rem 2.6rem; border-radius: 50px; cursor: pointer;
+  font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: lowercase; color: #3a1604;
+  background: linear-gradient(100deg, #ffe27a, #ff9a3c 55%, #ff6a2c);
   border: 0; overflow: hidden;
-  box-shadow: 0 12px 40px rgba(108,92,231,0.45);
+  box-shadow: 0 10px 36px rgba(255,120,40,0.5), 0 0 0 1px rgba(255,220,150,0.5) inset;
   transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease);
 }
-.explore-btn:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 18px 54px rgba(0,210,255,0.5); }
+.explore-btn:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 16px 48px rgba(255,140,50,0.65); }
 .explore-btn:active { transform: translateY(0) scale(0.98); }
 .explore-icon { transition: transform 0.35s var(--ease); }
 .explore-btn:hover .explore-icon { transform: translateX(5px); }
 .explore-btn::after {
-  content: ""; position: absolute; top: 0; left: -120%; width: 60%; height: 100%;
-  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.85), transparent);
-  transform: skewX(-18deg); animation: sheen 3.2s ease-in-out infinite;
+  content: ""; position: absolute; top: 0; left: -120%; width: 55%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.8), transparent);
+  transform: skewX(-18deg); animation: sheen 3.4s ease-in-out infinite;
 }
-@keyframes sheen { 0%,60% { left: -120%; } 100% { left: 140%; } }
+@keyframes sheen { 0%,60% { left: -120%; } 100% { left: 150%; } }
 
 /* ============================================================
    TETRIS LINE-CLEAR TRANSITION  (Tetris Effect vibe)

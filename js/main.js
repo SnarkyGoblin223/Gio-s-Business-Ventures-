@@ -143,6 +143,103 @@
     document.querySelectorAll('.tcard.flipped').forEach(function (c) { c.classList.remove('flipped'); });
   }
 
+  /* ============================================================
+     The intro artwork — sun rays, engraved disc, flowing ribbons
+     ============================================================ */
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function svgEl(name, attrs) {
+    var e = document.createElementNS(SVGNS, name);
+    if (attrs) { for (var k in attrs) { e.setAttribute(k, attrs[k]); } }
+    return e;
+  }
+
+  /* one wavy flame, base at (0,0), tip at (0,-L) */
+  function flamePath(w, L) {
+    return 'M ' + (-w) + ' 0 ' +
+      'C ' + (-w * 1.5) + ' ' + (-L * 0.42) + ', ' + (w * 0.95) + ' ' + (-L * 0.64) + ', 0 ' + (-L) + ' ' +
+      'C ' + (-w * 0.95) + ' ' + (-L * 0.64) + ', ' + (w * 1.5) + ' ' + (-L * 0.42) + ', ' + w + ' 0 Z';
+  }
+
+  function initSun() {
+    var raysG = document.getElementById('sunRays');
+    var linesG = document.getElementById('sunLines');
+    if (!raysG || !linesG) return;
+    var cx = 210, cy = 210, R = 92;
+
+    /* engraved radial lines on the disc */
+    var n = 80;
+    for (var i = 0; i < n; i++) {
+      var a = (i / n) * Math.PI * 2;
+      linesG.appendChild(svgEl('line', {
+        x1: cx + Math.cos(a) * 20, y1: cy + Math.sin(a) * 20,
+        x2: cx + Math.cos(a) * (R - 7), y2: cy + Math.sin(a) * (R - 7),
+        'class': 'sun-line'
+      }));
+    }
+
+    /* flame rays around the disc, alternating long/short */
+    var count = 24;
+    for (var j = 0; j < count; j++) {
+      var ang = (j / count) * 360;
+      var long = (j % 2 === 0);
+      var L = long ? 96 : 60, w = long ? 9 : 7;
+      var g = svgEl('g', {
+        'class': 'ray',
+        transform: 'rotate(' + ang + ' ' + cx + ' ' + cy + ') translate(' + cx + ' ' + (cy - R + 3) + ')'
+      });
+      var p = svgEl('path', { 'class': 'flame', d: flamePath(w, L) });
+      p.style.animationDelay = (j * 0.16) + 's';
+      g.appendChild(p);
+      raysG.appendChild(g);
+    }
+  }
+
+  /* a ribbon that starts at x=sx up top and converges to centre-bottom */
+  function ribbonPath(sx) {
+    var ex = 120;
+    return 'M ' + sx + ' -12 ' +
+      'C ' + sx + ' 95, ' + (ex + (sx - ex) * 0.30) + ' 215, ' + ex + ' 372';
+  }
+
+  function initBeams() {
+    var svg = document.getElementById('beams');
+    if (!svg) return;
+
+    var defs = svgEl('defs');
+    var grad = svgEl('linearGradient', { id: 'beamGrad', x1: '0', y1: '0', x2: '0', y2: '1' });
+    grad.appendChild(svgEl('stop', { offset: '0%',  'stop-color': '#ffe27a' }));
+    grad.appendChild(svgEl('stop', { offset: '45%', 'stop-color': '#ff8a2c' }));
+    grad.appendChild(svgEl('stop', { offset: '100%', 'stop-color': '#e2406d' }));
+    defs.appendChild(grad);
+    svg.appendChild(defs);
+
+    var data = [
+      { x: 28, w: 14 }, { x: 60, w: 22 }, { x: 96, w: 16 },
+      { x: 132, w: 26 }, { x: 168, w: 18 }, { x: 200, w: 22 }, { x: 224, w: 13 }
+    ];
+    data.forEach(function (d, i) {
+      var dPath = ribbonPath(d.x);
+      var group = svgEl('g', { 'class': 'ribbon' });
+      group.style.animationDelay = (i * 0.5) + 's';
+      group.appendChild(svgEl('path', {
+        'class': 'ribbon-base', d: dPath,
+        stroke: 'url(#beamGrad)', 'stroke-width': d.w, opacity: '0.92'
+      }));
+      var glow = svgEl('path', {
+        'class': 'ribbon-glow', d: dPath,
+        'stroke-width': Math.max(3, d.w * 0.3)
+      });
+      glow.style.animationDelay = (i * 0.4) + 's';
+      group.appendChild(glow);
+      svg.appendChild(group);
+    });
+  }
+
+  initSun();
+  initBeams();
+
+  /* ============================================================ */
+
   /* Tarot card flip on click */
   document.querySelectorAll('.tcard').forEach(function (card) {
     if (card.classList.contains('locked')) return;

@@ -12,19 +12,47 @@
 </head>
 <body>
 
-  <!-- ============ INTRO ============ -->
+  <!-- ============ INTRO (the sun — a living piece of art) ============ -->
   <section class="layer intro" id="intro">
-    <div class="intro-bg">
-      <span class="orb orb-1"></span>
-      <span class="orb orb-2"></span>
-      <span class="orb orb-3"></span>
-    </div>
-    <div class="intro-inner">
-      <h1 class="intro-hi">Hi, I'm <span class="grad">Gio</span></h1>
-      <p class="intro-mid">I like to do things.</p>
-      <p class="intro-sub">Here's some current ventures I have.</p>
+    <div class="intro-sky"></div>
+
+    <div class="intro-art">
+      <div class="sun-wrap">
+        <svg class="sun" viewBox="0 0 420 420" aria-label="A radiant sun">
+          <defs>
+            <radialGradient id="discGrad" cx="42%" cy="38%" r="70%">
+              <stop offset="0%"  stop-color="#fff3bf" />
+              <stop offset="42%" stop-color="#ffd24a" />
+              <stop offset="78%" stop-color="#ff9a2c" />
+              <stop offset="100%" stop-color="#f4731f" />
+            </radialGradient>
+            <linearGradient id="rayGrad" x1="0" y1="1" x2="0" y2="0">
+              <stop offset="0%"  stop-color="#ffd24a" />
+              <stop offset="55%" stop-color="#ff8a2c" />
+              <stop offset="100%" stop-color="#f4501f" />
+            </linearGradient>
+          </defs>
+
+          <!-- flame rays (built by JS) -->
+          <g class="sun-rays" id="sunRays"></g>
+
+          <!-- the disc -->
+          <g class="sun-disc">
+            <circle class="sun-core" cx="210" cy="210" r="92" />
+            <g class="sun-lines" id="sunLines"></g>
+            <circle class="sun-disc-ring" cx="210" cy="210" r="92" />
+          </g>
+        </svg>
+      </div>
+
+      <h1 class="intro-name">𝔾𝕚𝕠</h1>
+      <p class="intro-tag">I like to do things.</p>
+
+      <!-- sunbeam ribbons flowing down into Explore (built by JS) -->
+      <svg class="beams" id="beams" viewBox="0 0 240 360" preserveAspectRatio="none" aria-hidden="true"></svg>
+
       <button class="explore-btn" id="exploreBtn">
-        <span class="explore-label">Explore</span>
+        <span class="explore-label">explore</span>
         <span class="explore-icon" aria-hidden="true">▸</span>
       </button>
     </div>
